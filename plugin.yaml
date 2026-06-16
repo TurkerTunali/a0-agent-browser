@@ -1,0 +1,8 @@
+name: agent_browser
+title: A0 Agent Browser
+description: Native A0 tools for Vercel Agent Browser - CDP-based browser automation for AI agents.
+version: 1.0.0
+settings_sections: []
+per_project_config: false
+per_agent_config: false
+always_enabled: false
