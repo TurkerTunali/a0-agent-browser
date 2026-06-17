@@ -1,40 +1,42 @@
-"""Open a URL using Playwright connected to a remote CDP endpoint."""
+"""Open a URL using Vercel Agent Browser connected to a remote CDP endpoint."""
 from helpers.tools import Tool, ToolArgument
 import os
+import subprocess
 
 class AgentBrowserOpenTool(Tool):
     name = "agent_browser_open"
-    description = "Open a URL in a browser via Chrome DevTools Protocol (CDP)."
+    description = "Open a URL in a browser via Chrome DevTools Protocol (CDP) using Vercel Agent Browser."
     arguments_schema = {
         "url": ToolArgument(type="string", required=True, description="URL to open."),
         "cdp": ToolArgument(type="string", required=False, default="", description="CDP endpoint, e.g. http://localhost:9222."),
     }
 
     async def run(self, agent_context, url: str, cdp: str = ""):
+        cdp_url = cdp if cdp else os.environ.get("CDP_URL", "http://localhost:9222")
+        if not cdp_url.startswith("http://") and not cdp_url.startswith("ws://"):
+            cdp_url = f"http://{cdp_url}"
+
+        # Global flag --cdp must come before the 'open' subcommand
+        cmd = ["agent-browser", "--cdp", cdp_url, "open", url]
+
         try:
-            from playwright.sync_api import sync_playwright
-
-            cdp_url = cdp if cdp else os.environ.get("CDP_URL", "http://localhost:9222")
-            if not cdp_url.startswith("http://") and not cdp_url.startswith("ws://"):
-                cdp_url = f"http://{cdp_url}"
-
-            with sync_playwright() as p:
-                browser = p.chromium.connect_over_cdp(cdp_url)
-                if browser.contexts and browser.contexts[0].pages:
-                    page = browser.contexts[0].pages[0]
-                else:
-                    page = browser.new_page()
-
-                page.goto(url)
-                title = page.title()
-                browser.close()
-
-                return {"success": True, "stdout": f"Navigated to: {title}", "stderr": ""}
-        except ImportError:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            if result.returncode == 0:
+                return {"success": True, "stdout": f"Opened {url} via agent-browser", "stderr": result.stderr}
+            else:
+                return {"success": False, "stdout": result.stdout, "stderr": result.stderr}
+        except FileNotFoundError:
             return {
                 "success": False,
                 "stdout": "",
-                "stderr": "Playwright not installed. Run: pip install playwright && python -m playwright install chromium"
+                "stderr": "agent-browser not found in PATH. Install with: npm install -g agent-browser"
             }
+        except subprocess.TimeoutExpired:
+            return {"success": False, "stdout": "", "stderr": "Command timed out after 30 seconds."}
         except Exception as e:
             return {"success": False, "stdout": "", "stderr": str(e)}
