@@ -8,14 +8,38 @@ Native A0 tools for CDP-based browser automation directly from your Agent Zero a
 - **Remote Chrome support** -- connect to Chrome running on another machine via SSH reverse tunnel.
 - **Anti-bot friendly** -- since it can drive your real Chrome on macOS, it bypasses many detection systems.
 
+## What This Plugin Adds
+
+- **First-class A0 tools** for opening pages via Chrome DevTools Protocol (CDP).
+- **Remote Chrome support** -- connect to Chrome running on another machine via SSH reverse tunnel.
+- **Anti-bot friendly** -- since it can drive your real Chrome on macOS, it bypasses many detection systems.
+
+## Why Use This Plugin? (Advantages Over Native A0 Browsers)
+
+| Feature | A0 Agent Browser (This Plugin) | Native A0 `browser` Tool | CamoFox Browser |
+|---|---|---|---|
+| **Detection Avoidance** | ✅ Real Chrome via CDP — extremely hard to detect | ❌ Headless Playwright — easily fingerprinted | ✅ Anti-detection but complex setup |
+| **IP Reputation** | ✅ Residential IP via SSH tunnel to your Mac | ❌ VPS/Server IP — often blocked | ⚠️ Runs in Docker — server IP |
+| **Performance** | ✅ Rust binary (~ms startup) | ⚠️ Full Playwright/Chromium stack | ⚠️ Node.js + Playwright overhead |
+| **Browser Fidelity** | ✅ Real Chrome on real OS — cookies, localStorage, extensions work natively | ⚠️ Headless quirks, missing behaviors | ✅ Real Chrome but in container |
+| **Architecture** | ✅ Server-side AI logic + local browser presence | ❌ All in-container | ⚠️ All in-container |
+| **Dependencies** | ✅ Zero runtime deps (single binary) | ❌ Playwright, Node.js, Chromium | ❌ Playwright, Node.js, Chromium |
+| **Setup Complexity** | ⚠️ Requires SSH tunnel + Chrome on Mac | ✅ Works out of the box | ⚠️ Complex, version-sensitive |
+| **Visual Feedback** | ❌ No screenshots returned to A0 | ✅ Screenshots, rendered content | ✅ Screenshots, resources extraction |
+| **Commands Supported** | ⚠️ Currently `open` only (extensible) | ✅ Full automation (click, type, scroll, etc.) | ✅ Full automation |
+
+**In short:** Use this plugin when you need **stealth, residential IP, and real Chrome behavior** — e.g., sites with aggressive bot detection, IP-based geo-blocking, or complex JS that breaks in headless mode. Use the native `browser` tool for quick internal scraping, screenshots, and form filling where detection doesn't matter.
+
 ## Prerequisites
 
-- Playwright installed in the Agent Zero environment:
+- **Vercel `agent-browser` CLI** installed (Rust binary, no Node.js/Playwright needed):
   ```bash
-  pip install playwright
-  python -m playwright install chromium
+  # Install globally via npm (downloads prebuilt binary)
+  npm install -g agent-browser@latest
+  # Or download directly from GitHub Releases
   ```
 - A Chrome/Chromium instance running with `--remote-debugging-port=9222`
+- For remote Mac access: SSH reverse tunnel (see Usage below)
 
 ## Installation
 
